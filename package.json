@@ -1,0 +1,237 @@
+{
+  "name": "lua-mobdebug",
+  "displayName": "Lua MobDebug adapter",
+  "version": "0.0.1",
+  "description": "Visual Studio Code MobDebug adapter",
+  "publisher": "Alexey Melnichuk",
+  "author": {
+    "name": "Alexey Melnichuk",
+    "email": "alexeymelnichuck@gmail.com"
+  },
+  "icon": "images/logo.png",
+  "categories": [
+    "Debuggers"
+  ],
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moteus/vscode-mobdebug.git"
+  },
+  "bugs": {
+    "url": "https://github.com/moteus/vscode-mobdebug/issues"
+  },
+  "keywords": [
+    "lua",
+    "debug",
+    "debuggers"
+  ],
+  "engines": {
+    "vscode": "^1.63.0"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onDebugInitialConfigurations:luaMobDebug",
+    "onDebugDynamicConfigurations:luaMobDebug",
+    "onDebugResolve:luaMobDebug"
+  ],
+  "devDependencies": {
+    "@types/node": "^17.0.8",
+    "@typescript-eslint/eslint-plugin": "^5.9.0",
+    "@typescript-eslint/parser": "^5.9.0",
+    "esbuild": "^0.13.12",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.4.0"
+  },
+  "dependencies": {
+    "@types/vscode": "^1.61.0",
+    "await-notify": "1.0.1",
+    "buffer": "^6.0.3",
+    "net": "^1.0.2",
+    "vscode-debugadapter": "^1.51.0",
+    "vscode-debugprotocol": "^1.51.0"
+  },
+  "workspaceTrust": {
+    "request": "never"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --tsconfig=./tsconfig.json --external:vscode --format=cjs --platform=node --outfile=dist/extension.js",
+    "watch": "npm run -S esbuild-base -- --sourcemap --sources-content=false --watch",
+    "build": "npm run -S esbuild-base -- --sourcemap --sources-content=false",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "publish-pre-release": "vsce publish --pre-release",
+    "vscode:prepublish": "rimraf dist && npm run -S esbuild-base -- --minify",
+    "test": "npm run typecheck"
+  },
+  "contributes": {
+    "breakpoints": [
+      {
+        "language": "lua"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "luaMobDebug",
+        "languages": [
+          "lua"
+        ],
+        "label": "Lua MobDebug",
+        "program": "./out/DebugAdapter.js",
+        "runtime": "node",
+        "configurationSnippets": [
+          {
+            "label": "Lua MobDebug: Listen",
+            "description": "A new configuration for listening a remote deubg connections",
+            "body": {
+              "name": "${1:Lua MobDebug: Listen}",
+              "type": "luaMobDebug",
+              "request": "attach",
+              "workingDirectory": "^\"\\${workspaceFolder}\"",
+              "sourceBasePath": "^\"\\${workspaceFolder}\"",
+              "listenPublicly": false,
+              "listenPort": 8172,
+              "sourceEncoding": "UTF-8"
+            }
+          },
+          {
+            "label": "Lua MobDebug: Current File",
+            "description": "A new configuration for launching a Lua process",
+            "body": {
+              "name": "${1:Lua MobDebug: Current File}",
+              "type": "luaMobDebug",
+              "request": "launch",
+              "workingDirectory": "^\"\\${workspaceFolder}\"",
+              "sourceBasePath": "^\"\\${workspaceFolder}\"",
+              "listenPublicly": false,
+              "listenPort": 8172,
+              "sourceEncoding": "UTF-8",
+              "executable": "lua",
+              "arguments": [
+                "^\"\\${relativeFile}\""
+              ]
+            }
+          }
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "name",
+              "type",
+              "request",
+              "workingDirectory",
+              "listenPublicly",
+              "listenPort"
+            ],
+            "properties": {
+              "workingDirectory": {
+                "type": "string",
+                "description": "Working directory",
+                "default": "${workspaceRoot}"
+              },
+              "sourceBasePath": {
+                "type": "string",
+                "description": "Base path of lua source files",
+                "default": "${workspaceRoot}"
+              },
+              "executable": {
+                "type": "string",
+                "description": "An exe file to launch",
+                "default": "${workspaceRoot}/lua.exe"
+              },
+              "arguments": {
+                "type": "array",
+                "description": "Command line arguments for executable",
+                "default": [
+                  "${relativeFile}"
+                ]
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": "Environment variables for executable"
+              },
+              "listenPublicly": {
+                "type": "boolean",
+                "description": "Set this to false",
+                "default": false
+              },
+              "listenPort": {
+                "type": "integer",
+                "description": "Local TCP port to communicate between debug adapter and debuggee",
+                "default": 56789
+              },
+              "sourceEncoding": {
+                "type": "string",
+                "description": "Encoding of the debuggee. (Example: 'UTF-8', '949')",
+                "default": "UTF-8",
+                "enum": [
+                  "ASCII",
+                  "LATIN1",
+                  "UCS-2",
+                  "UTF-8"
+                ]
+              },
+              "consoleEncoding": {
+                "type": "string",
+                "description": "Encoding of stdio of debuggee application. (Defult: sourceEncoding)",
+                "default": null,
+                "enum": [
+                  "ASCII",
+                  "LATIN1",
+                  "UCS-2",
+                  "UTF-8"
+                ]
+              }
+            }
+          },
+          "attach": {
+            "required": [
+              "name",
+              "type",
+              "request",
+              "workingDirectory",
+              "listenPublicly",
+              "listenPort"
+            ],
+            "properties": {
+              "workingDirectory": {
+                "type": "string",
+                "description": "Working directory",
+                "default": "${workspaceRoot}"
+              },
+              "sourceBasePath": {
+                "type": "string",
+                "description": "Base path of lua source files",
+                "default": "${workspaceRoot}"
+              },
+              "listenPublicly": {
+                "type": "boolean",
+                "description": "Set this to true if the debuggee will run in different computer.",
+                "default": false
+              },
+              "listenPort": {
+                "type": "integer",
+                "description": "Local TCP port to communicate between debug adapter and debuggee.",
+                "default": 56789
+              },
+              "sourceEncoding": {
+                "type": "string",
+                "description": "Encoding of the debuggee. (Example: 'UTF-8', 'ASCII')",
+                "default": "UTF-8"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}
