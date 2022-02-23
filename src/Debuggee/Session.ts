@@ -68,10 +68,14 @@ export class DebuggeeSession extends EventEmitter {
     private welcome() {
         let sourceBasePath     = this.debuggerSession?.sourceBasePath;
         let directorySeperator = path.sep;
+        let stopOnEntry        = this.debuggerSession?.stopOnEntry;
         let command = {
             command:            'welcome',
-            sourceBasePath:     sourceBasePath,
-            directorySeperator: directorySeperator,
+            arguments: {
+                stopOnEntry:        stopOnEntry,
+                sourceBasePath:     sourceBasePath,
+                directorySeperator: directorySeperator,
+            }
         };
         this.send(command);
     }

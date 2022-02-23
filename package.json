@@ -94,6 +94,7 @@
               "sourceBasePath": "^\"\\${workspaceFolder}\"",
               "listenPublicly": false,
               "listenPort": 8172,
+              "stopOnEntry": true,
               "sourceEncoding": "UTF-8"
             }
           },
@@ -108,6 +109,7 @@
               "sourceBasePath": "^\"\\${workspaceFolder}\"",
               "listenPublicly": false,
               "listenPort": 8172,
+              "stopOnEntry": true,
               "sourceEncoding": "UTF-8",
               "executable": "lua",
               "arguments": [
@@ -141,6 +143,11 @@
                 "type": "string",
                 "description": "An exe file to launch",
                 "default": "${workspaceRoot}/lua.exe"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "markdownDescription": "Automatically stop after entry.",
+                "default": true
               },
               "arguments": {
                 "type": "array",
@@ -212,6 +219,11 @@
                 "type": "string",
                 "description": "Base path of lua source files",
                 "default": "${workspaceRoot}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "markdownDescription": "Automatically stop after entry.",
+                "default": true
               },
               "listenPublicly": {
                 "type": "boolean",

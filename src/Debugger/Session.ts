@@ -24,6 +24,7 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
     public workingDirectory:string = '';
     public debuggeeHost:string = '';
     public debuggeePort:number = Constants.defaultPort;
+    public stopOnEntry:boolean = true;
 
     // Launch configuration
     public noDebug?:boolean;
@@ -114,6 +115,11 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
         this.consoleEncoding  = parseEncoding(args.consoleEncoding) || <BufferEncoding>args.sourceEncoding;
         this.workingDirectory = args.workingDirectory || '';
         this.sourceBasePath   = args.sourceBasePath   || this.workingDirectory;
+        if (args.stopOnEntry === undefined) {
+            this.stopOnEntry = true;
+        } else {
+            this.stopOnEntry = args.stopOnEntry;
+        }
         // TODO: validate common configuration
         return true;
     }
@@ -308,6 +314,7 @@ interface RequestArguments {
     listenPort?: number;
     sourceEncoding?: string;
     consoleEncoding?: string;
+    stopOnEntry?: boolean;
 }
 
 interface LaunchRequestArguments extends RequestArguments {

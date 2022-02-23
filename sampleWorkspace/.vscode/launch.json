@@ -11,11 +11,12 @@
             "workingDirectory": "${workspaceFolder}",
             "sourceBasePath": "${workspaceFolder}",
             "listenPublicly": false,
-            "listenPort": 56789,
+            "listenPort": 8818,
             "sourceEncoding": "UTF-8",
             "executable": "lua51",
+            "stopOnEntry": false,
             "arguments": [
-                "${relativeFile}"
+                "test.lua"
             ]
         },
         {
