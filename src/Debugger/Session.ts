@@ -1,5 +1,5 @@
 import { Subject } from 'await-notify';
-import { LoggingDebugSession, TerminatedEvent, OutputEvent, InitializedEvent } from 'vscode-debugadapter';
+import { LoggingDebugSession, TerminatedEvent, OutputEvent, InitializedEvent, ExitedEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { DebugLogger } from '../VSCode/LogManager';
 import { DebuggeeSession } from '../Debuggee/Session';
@@ -49,6 +49,8 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
         response.body.supportsConditionalBreakpoints = true;
         response.body.supportsHitConditionalBreakpoints = true;
         response.body.supportsLogPoints = true;
+        response.body.supportSuspendDebuggee = true;
+        response.body.supportTerminateDebuggee = true;
 
         this.sendResponse(response);
     }
@@ -75,7 +77,14 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
         }
 
         this.debugProcess = new LuaScript(this, this);
-        this.debugProcess.run(() => {
+        this.debugProcess.run((code?:number) => {
+            if (this.debuggee) {
+                this.debuggee.stop();
+                this.debuggee = undefined;
+            }
+            if(code !== undefined){
+                this.sendEvent(new ExitedEvent(code));
+            }
             this.sendEvent(new TerminatedEvent());
         });
 
@@ -195,21 +204,54 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
         this.logRequest(response);
 
-        if (this.debugProcess) {
-            this.debugProcess.dispose(args.terminateDebuggee);
+        if(!args.restart) {
+            if (this.debuggeeServer) {
+                this.debuggeeServer.dispose();
+                this.debuggeeServer = undefined;
+            }
+        }
+
+        if (args.terminateDebuggee) {
+            if (this.debugProcess) {
+                this.debugProcess.dispose(true);
+                this.debugProcess = undefined;
+            }
+
+            if (this.debuggee) {
+                this.debuggee.stop();
+                this.debuggee = undefined;
+            }
+
+            this.sendResponse(response);
+        } else if (this.debuggee) {
+            let timer = setTimeout(() => {
+                if (this.debugProcess) {
+                    this.debugProcess.dispose(false);
+                    this.debugProcess = undefined;
+                }
+                if (this.debuggee) {
+                    this.debuggee.stop();
+                    this.debuggee = undefined;
+                }
+                this.sendResponse(response);
+            }, 15000);
+
+            this.debuggee.disconnect(response, args, (response, self) => {
+                clearTimeout(timer);
+                if (self.debugProcess) {
+                    self.debugProcess.dispose(false);
+                    self.debugProcess = undefined;
+                }
+                if (self.debuggee) {
+                    self.debuggee.stop();
+                    self.debuggee = undefined;
+                }
+                this.sendResponse(response);
+            }, this);
+        } else if (this.debugProcess) {
+            this.debugProcess.dispose(false);
             this.debugProcess = undefined;
         }
-
-        if (this.debuggee) {
-            this.debuggee.stop();
-            this.debuggee = undefined;
-        }
-
-        if (this.debuggeeServer) {
-            this.debuggeeServer.dispose();
-        }
-
-        this.sendResponse(response);
     }
  
     public sendResponse(response: DebugProtocol.Response): void{

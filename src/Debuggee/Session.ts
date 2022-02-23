@@ -18,6 +18,8 @@ class DebuggeeRequest {
     }
 }
 
+type ResponseCallback = (response: DebugProtocol.Response, arg: any) => void;
+
 export class DebuggeeSession extends EventEmitter {
     private connection: DebuggeeConnection;
     private debuggerSession?: DebuggerSession;
@@ -31,7 +33,7 @@ export class DebuggeeSession extends EventEmitter {
         socket.on('close', () => {this.emit('close');});
     }
 
-    private registerCallback(request: Object, callbackFunc, callbackArgs = null){
+    private registerCallback(request: Object, callbackFunc: ResponseCallback, callbackArgs: any = null){
         let requestSeq: number | undefined = request['seq'];
         if (requestSeq === undefined || requestSeq === 0) {
             // TODO: arg error - callback can be set only for request type
@@ -79,9 +81,14 @@ export class DebuggeeSession extends EventEmitter {
         this.send(request);
     }
 
-    private send(request: Object, callbackFunc = null, callbackArgs = null){
-        if (callbackFunc !== null) {
-            this.registerCallback(request, callbackFunc, callbackArgs);
+    public disconnect(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, callback? : ResponseCallback, callbackArgs: any = null): void {
+        let request = new DebuggeeRequest(response, args);
+        this.send(request, callback, callbackArgs);
+    }
+
+    private send(request: Object, callback? : ResponseCallback, callbackArgs: any = null){
+        if (callback !== undefined) {
+            this.registerCallback(request, callback, callbackArgs);
         }
         let message = JSON.stringify(request);
         this.connection.send(message);

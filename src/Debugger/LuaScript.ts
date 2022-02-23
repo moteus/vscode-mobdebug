@@ -8,6 +8,8 @@ interface ProcessEnv {
     [key: string]: string | undefined
 }
 
+type LuaScriptRunCallback = (code?: number) => void;
+
 export class LuaScript {
     private session: IDebuggerSessionStdio;
     private config: IDebuggerSessionConfig;
@@ -45,7 +47,7 @@ export class LuaScript {
         return env;
     }
 
-    public run(callback: () => void){
+    public run(callback: LuaScriptRunCallback){
         let session = this.session;
         let config = this.config;
 
@@ -101,7 +103,7 @@ export class LuaScript {
             callback();
         });
 
-        this.process.on('exit', (code, signal) => {
+        this.process.on('exit', (code: number, signal: number) => {
             session.printDebugConsole(`Process exit with code: ${code} signal: ${signal}`);
         });
 
@@ -111,7 +113,7 @@ export class LuaScript {
             }
             this.exitProcessed = true;
             session.printDebugConsole(`Process on close code: ${code} args: ${args}`);
-            callback();
+            callback(code);
         });
     }
 
