@@ -7,7 +7,7 @@ import { DebuggeeSessionFactory } from '../Debuggee/SessionFactory';
 import { Constants } from '../Constants';
 import { IDebuggerSessionConfig } from './ISessionConfig';
 import { IDebuggerSessionStdio } from "./ISessionStdio";
-import { launchScript, IDebuggeeProcess } from './LuaScript';
+import { launchScript, IDebuggeeProcess } from '../Debuggee/Process';
 import { assert } from 'console';
 
 export class DebuggerSession extends LoggingDebugSession implements IDebuggerSessionConfig, IDebuggerSessionStdio {

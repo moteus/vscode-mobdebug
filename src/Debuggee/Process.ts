@@ -1,8 +1,8 @@
 import * as path from 'path';
 import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import { Constants } from "../Constants";
-import { IDebuggerSessionConfig } from "./ISessionConfig";
-import { IDebuggerSessionStdio } from "./ISessionStdio";
+import { IDebuggerSessionConfig } from "../Debugger/ISessionConfig";
+import { IDebuggerSessionStdio } from "../Debugger/ISessionStdio";
 
 interface ProcessEnv {
     [key: string]: string | undefined
