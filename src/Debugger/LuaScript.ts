@@ -8,20 +8,30 @@ interface ProcessEnv {
     [key: string]: string | undefined
 }
 
-type LuaScriptRunCallback = (code?: number) => void;
+export type LuaScriptRunCallback = (code?: number) => void;
 
-export class LuaScript {
-    private session: IDebuggerSessionStdio;
-    private config: IDebuggerSessionConfig;
-    private process?: ChildProcess;
-    private exitProcessed?: boolean;
+export interface IDebuggeeProcess {
+    run(callback: LuaScriptRunCallback): void;
+    dispose(terminate?:boolean):void;
+}
+
+export function launchScript(config: IDebuggerSessionConfig, session: IDebuggerSessionStdio): IDebuggeeProcess {
+    let process : DebuggeeProcess = config.launchInterpreter ? new LuaScript(config, session) : new DebuggeeProcess(config, session);
+    return process;
+}
+
+class DebuggeeProcess implements IDebuggeeProcess{
+    protected session: IDebuggerSessionStdio;
+    protected config: IDebuggerSessionConfig;
+    protected process?: ChildProcess;
+    protected exitProcessed?: boolean;
 
     constructor(config: IDebuggerSessionConfig, session: IDebuggerSessionStdio) {
         this.config  = config;
         this.session = session;
    }
 
-    private createEnv(): ProcessEnv | undefined {
+   protected createEnv(): ProcessEnv | undefined {
         if (this.config.launchEnveronment === null) {
             return process.env;
         }
@@ -47,25 +57,19 @@ export class LuaScript {
         return env;
     }
 
-    public run(callback: LuaScriptRunCallback){
-        let session = this.session;
-        let config = this.config;
-
+    protected createArgs(): Array<string> {
         let args: Array<string> = [];
-        if (!config.noDebug) {
-            let luaPath = path.join(Constants.extensionPath, 'lua').replace(/\\/g, '\\\\');
-            let luaDirSep           = "package.config:match('^(.-)\\n')";           // `/`
-            let luaTemplateSep      = "package.config:match('^.-\\n(.-)\\n')";      // `;`
-            let luaSubstitutionMark = "package.config:match('^.-\\n.-\\n(.-)\\n')"; // `?`
-            let setLuaPath = `package.path='${luaPath}'..${luaDirSep}..${luaSubstitutionMark}..'.lua'..${luaTemplateSep}..package.path`;
-            let requireDebug = `require'vscode-mobdebug'.start('127.0.0.1',${config.debuggeePort})`;
-            args.push('-l', `package`);
-            args.push('-e', `${setLuaPath};${requireDebug}`);
-        }
+        let config = this.config;
 
         if (config.launchArguments) {
             args.push(...config.launchArguments);
         }
+
+        return args;
+    }
+
+    protected createOptions(): SpawnOptions {
+        let config = this.config;
 
         let options: SpawnOptions = {
             cwd:   config.workingDirectory,
@@ -73,7 +77,25 @@ export class LuaScript {
             env:   this.createEnv(),
         };
 
-        this.process = spawn(config.launchInterpreter, args, options);
+        return options;
+    }
+
+    protected getApplication() : string {
+        return this.config.launchExecutable || '';
+    }
+
+    protected crearteProcess(): ChildProcess {
+        let args = this.createArgs();
+        let options = this.createOptions();
+        let executable = this.getApplication();
+        return spawn(executable, args, options);
+    }
+
+    public run(callback: LuaScriptRunCallback){
+        let session = this.session;
+        let config = this.config;
+
+        this.process = this.crearteProcess();
 
         if(!this.process) {
             setImmediate(callback);
@@ -127,5 +149,33 @@ export class LuaScript {
             }
             this.process = undefined;
         }
+    }
+}
+
+class LuaScript extends DebuggeeProcess {
+    protected getApplication() : string {
+        return this.config.launchInterpreter || '';
+    }
+
+    protected createArgs(): Array<string> {
+        let args: Array<string> = [];
+        let config = this.config;
+
+        if (!config.noDebug) {
+            let luaPath = path.join(Constants.extensionPath, 'lua').replace(/\\/g, '\\\\');
+            let luaDirSep           = "package.config:match('^(.-)\\n')";           // `/`
+            let luaTemplateSep      = "package.config:match('^.-\\n(.-)\\n')";      // `;`
+            let luaSubstitutionMark = "package.config:match('^.-\\n.-\\n(.-)\\n')"; // `?`
+            let setLuaPath = `package.path='${luaPath}'..${luaDirSep}..${luaSubstitutionMark}..'.lua'..${luaTemplateSep}..package.path`;
+            let requireDebug = `require'vscode-mobdebug'.start('127.0.0.1',${config.debuggeePort})`;
+            args.push('-l', `package`);
+            args.push('-e', `${setLuaPath};${requireDebug}`);
+        }
+
+        if (config.launchArguments) {
+            args.push(...config.launchArguments);
+        }
+
+        return args;
     }
 }

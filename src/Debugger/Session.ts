@@ -7,7 +7,7 @@ import { DebuggeeSessionFactory } from '../Debuggee/SessionFactory';
 import { Constants } from '../Constants';
 import { IDebuggerSessionConfig } from './ISessionConfig';
 import { IDebuggerSessionStdio } from "./ISessionStdio";
-import { LuaScript } from './LuaScript';
+import { launchScript, IDebuggeeProcess } from './LuaScript';
 import { assert } from 'console';
 
 export class DebuggerSession extends LoggingDebugSession implements IDebuggerSessionConfig, IDebuggerSessionStdio {
@@ -15,7 +15,7 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
     private debuggee?: DebuggeeSession;
 
     private configurationDone = new Subject();
-    private debugProcess?: LuaScript;
+    private debugProcess?: IDebuggeeProcess;
 
     // Common configuration
     public sourceEncoding:BufferEncoding = 'utf-8';
@@ -28,6 +28,7 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
 
     // Launch configuration
     public noDebug?:boolean;
+    public launchExecutable:string = '';
     public launchInterpreter:string = '';
     public launchArguments?:Array<string>;
     public launchEnveronment?: { [key: string]: string | null | undefined };
@@ -77,7 +78,7 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
             this.watingDebuggeeSession(response);
         }
 
-        this.debugProcess = new LuaScript(this, this);
+        this.debugProcess = launchScript(this, this);
         this.debugProcess.run((code?:number) => {
             if (this.debuggee) {
                 this.debuggee.stop();
@@ -100,7 +101,14 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
     }
 
     private configureLaunch(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments):boolean{
-        this.launchInterpreter = args.executable || 'lua';
+        if (args.executable) {
+            this.launchExecutable = args.executable;
+            this.launchInterpreter = '';
+        } else {
+            this.launchInterpreter = args.interpreter || 'lua';
+            this.launchExecutable = '';
+        }
+
         this.launchArguments   = args.arguments || [];
         this.launchEnveronment = args.env;
 
@@ -320,6 +328,7 @@ interface RequestArguments {
 interface LaunchRequestArguments extends RequestArguments {
     noDebug?: boolean;
     executable?: string;
+    interpreter?: string;
     arguments?: Array<string>;
     env?: { [key: string]: string | null | undefined },
 }

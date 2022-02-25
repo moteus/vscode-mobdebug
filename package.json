@@ -128,6 +128,19 @@
               "listenPublicly",
               "listenPort"
             ],
+            "oneOf": [
+              {
+                  "required": ["interpreter"],
+                  "not": {"required": ["executable"]}
+              },
+              {
+                "required": ["executable"],
+                "not": {"required": ["interpreter"]}
+              },
+              {
+                "not": {"required": ["interpreter", "executable"]}
+              }
+            ],
             "properties": {
               "workingDirectory": {
                 "type": "string",
@@ -139,10 +152,14 @@
                 "description": "Base path of lua source files",
                 "default": "${workspaceRoot}"
               },
+              "interpreter": {
+                "type": "string",
+                "description": "An interpriter to launch Lua script with auto loaded mobdebug module.",
+                "default": "lua"
+              },
               "executable": {
                 "type": "string",
-                "description": "An exe file to launch",
-                "default": "${workspaceRoot}/lua.exe"
+                "description": "An arbitrary application to launch debuggee process."
               },
               "stopOnEntry": {
                 "type": "boolean",

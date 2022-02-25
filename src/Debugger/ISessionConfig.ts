@@ -9,7 +9,8 @@ export interface IDebuggerSessionConfig {
 
     // Launch configuration
     noDebug?:boolean;
-    launchInterpreter:string;
+    launchInterpreter?:string;
+    launchExecutable?:string;
     launchArguments?:Array<string>;
     launchEnveronment?: { [key: string]: string | null | undefined };
 }

@@ -13,7 +13,7 @@
             "listenPublicly": false,
             "listenPort": 8818,
             "sourceEncoding": "UTF-8",
-            "executable": "lua51",
+            "interpreter": "lua51",
             "stopOnEntry": false,
             "arguments": [
                 "test.lua"
