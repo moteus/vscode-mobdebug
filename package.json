@@ -111,7 +111,7 @@
               "listenPort": 8172,
               "stopOnEntry": true,
               "sourceEncoding": "UTF-8",
-              "executable": "lua",
+              "interpreter": "lua",
               "arguments": [
                 "^\"\\${relativeFile}\""
               ]
