@@ -8,11 +8,11 @@ interface ProcessEnv {
     [key: string]: string | undefined
 }
 
-export type LuaScriptRunCallback = (code?: number) => void;
+export type DebuggeeProcessCallback = (code?: number) => void;
 
 export interface IDebuggeeProcess {
-    run(callback: LuaScriptRunCallback): void;
-    dispose(terminate?:boolean):void;
+    run(callback: DebuggeeProcessCallback): void;
+    dispose(terminate?:boolean): void;
 }
 
 export function launchScript(config: IDebuggerSessionConfig, session: IDebuggerSessionStdio): IDebuggeeProcess {
@@ -91,7 +91,7 @@ class DebuggeeProcess implements IDebuggeeProcess{
         return spawn(executable, args, options);
     }
 
-    public run(callback: LuaScriptRunCallback){
+    public run(callback: DebuggeeProcessCallback){
         let session = this.session;
         let config = this.config;
 
