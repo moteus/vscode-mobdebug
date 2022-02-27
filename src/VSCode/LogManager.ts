@@ -6,8 +6,8 @@ export class DebugLogger {
     private static debuggerInfo: vscode.OutputChannel;
 
     public static init() {
-        DebugLogger.adapterInfo = vscode.window.createOutputChannel(Constants.logChannelPrefix + " Adapter");
-        DebugLogger.debuggerInfo = vscode.window.createOutputChannel(Constants.logChannelPrefix + " Debugger");
+        DebugLogger.adapterInfo = vscode.window.createOutputChannel(Constants.moduleDisplayName + " Adapter");
+        DebugLogger.debuggerInfo = vscode.window.createOutputChannel(Constants.moduleDisplayName + " Debugger");
     }
 
     public static logDebuggerInfo(str: string) {

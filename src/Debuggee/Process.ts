@@ -101,7 +101,7 @@ class DebuggeeProcess implements IDebuggeeProcess {
     protected getTerminal() : Terminal{
         // TODO: allaw to use the same terminal for all commands
         let terminal = window.createTerminal({
-            name: `Debug Lua File (${Constants.logChannelPrefix})`,
+            name: `Debug Lua File (${Constants.moduleDisplayName})`,
             env: {}, 
         });
         return terminal;
@@ -122,8 +122,8 @@ class DebuggeeProcess implements IDebuggeeProcess {
         let task = new Task(
             kind,
             TaskScope.Workspace,
-            Constants.logChannelPrefix,
-            `Debug Lua File (${Constants.logChannelPrefix})`,
+            Constants.moduleDisplayName,
+            `Debug Lua File (${Constants.moduleDisplayName})`,
             shell
         );
         tasks.executeTask(task);

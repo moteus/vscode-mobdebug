@@ -2,8 +2,8 @@ import { ExtensionContext } from "vscode";
 import * as path from 'path';
 
 export class Constants {
-    static readonly logChannelPrefix = 'MobDebug';
-    static readonly defaultPort      = 8172;
+    static readonly moduleDisplayName = 'MobDebug';
+    static readonly defaultPort       = 8172;
 
     static get debugSessionLogFile():string { return path.join(Constants.extensionPath, Constants.packageName + '.log'); };
     static get extensionPath():string { return Constants._extensionPath; };
