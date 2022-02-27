@@ -1,6 +1,7 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
-import * as qshell from 'shell-quote';
+import { quote } from 'shell-quote';
+import { tasks, window } from 'vscode';
+import { Terminal, ShellQuoting, TaskDefinition, ShellExecution, Task, TaskScope } from 'vscode';
 import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import { Constants } from "../Constants";
 import { IDebuggerSessionConfig } from "../Debugger/ISessionConfig";
@@ -29,7 +30,7 @@ class DebuggeeProcess implements IDebuggeeProcess {
     protected session: IDebuggerSessionStdio;
     protected config: IDebuggerSessionConfig;
     protected process?: ChildProcess;
-    protected terminal?: vscode.Terminal;
+    protected terminal?: Terminal;
     protected exitProcessed?: boolean;
 
     constructor(config: IDebuggerSessionConfig, session: IDebuggerSessionStdio) {
@@ -97,9 +98,9 @@ class DebuggeeProcess implements IDebuggeeProcess {
         return spawn(executable, args, options);
     }
 
-    protected getTerminal() : vscode.Terminal{
+    protected getTerminal() : Terminal{
         // TODO: allaw to use the same terminal for all commands
-        let terminal = vscode.window.createTerminal({
+        let terminal = window.createTerminal({
             name: `Debug Lua File (${Constants.logChannelPrefix})`,
             env: {}, 
         });
@@ -111,26 +112,26 @@ class DebuggeeProcess implements IDebuggeeProcess {
         let args = this.createArgs().map((item) => {
             return {
                 value: item,
-                quoting: vscode.ShellQuoting.Weak,
+                quoting: ShellQuoting.Weak,
             };
         });
-        var shell = new vscode.ShellExecution(executable, args);
-        let kind: vscode.TaskDefinition = {
+        var shell = new ShellExecution(executable, args);
+        let kind: TaskDefinition = {
             type: 'mobdebug.launch',
         };
-        let task = new vscode.Task(
+        let task = new Task(
             kind,
-            vscode.TaskScope.Workspace,
+            TaskScope.Workspace,
             Constants.logChannelPrefix,
             `Debug Lua File (${Constants.logChannelPrefix})`,
             shell
         );
-        vscode.tasks.executeTask(task);
+        tasks.executeTask(task);
     }
 
     protected runTerminalNative(): void {
         this.terminal = this.getTerminal();
-        let args = qshell.quote(this.createArgs());
+        let args = quote(this.createArgs());
         let executable = this.getApplication();
         let cmd = executable + ' ' + args;
         this.terminal.sendText(cmd, true);
@@ -222,8 +223,8 @@ class LuaScript extends DebuggeeProcess {
         if (!config.noDebug) {
             let luaPath = path.join(Constants.extensionPath, 'lua').replace(/\\/g, '\\\\');
             let luaDirSep           = "package.config:match('^(.-)%s')";           // `/`
-            let luaTemplateSep      = "package.config:match('^.-%s(.-)%s')";      // `;`
-            let luaSubstitutionMark = "package.config:match('^.-%s.-%s(.-)%s')"; // `?`
+            let luaTemplateSep      = "package.config:match('^.-%s(.-)%s')";       // `;`
+            let luaSubstitutionMark = "package.config:match('^.-%s.-%s(.-)%s')";   // `?`
             let setLuaPath = `package.path='${luaPath}'..${luaDirSep}..${luaSubstitutionMark}..'.lua'..${luaTemplateSep}..package.path`;
             let requireDebug = `require'vscode-mobdebug'.start('127.0.0.1',${config.debuggeePort})`;
             args.push('-l', `package`);

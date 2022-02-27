@@ -37,6 +37,7 @@
   ],
   "devDependencies": {
     "@types/node": "^17.0.8",
+    "@types/shell-quote": "^1.7.1",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
     "@typescript-eslint/parser": "^5.9.0",
     "esbuild": "^0.13.12",
@@ -45,12 +46,12 @@
   },
   "dependencies": {
     "@types/vscode": "^1.61.0",
-    "shell-quote": "^1.7.1",
+    "@vscode/debugadapter": "^1.51.0",
+    "@vscode/debugprotocol": "^1.51.0",
     "await-notify": "1.0.1",
     "buffer": "^6.0.3",
     "net": "^1.0.2",
-    "vscode-debugadapter": "^1.51.0",
-    "vscode-debugprotocol": "^1.51.0"
+    "shell-quote": "^1.7.1"
   },
   "workspaceTrust": {
     "request": "never"
@@ -130,15 +131,32 @@
             ],
             "oneOf": [
               {
-                  "required": ["interpreter"],
-                  "not": {"required": ["executable"]}
+                "required": [
+                  "interpreter"
+                ],
+                "not": {
+                  "required": [
+                    "executable"
+                  ]
+                }
               },
               {
-                "required": ["executable"],
-                "not": {"required": ["interpreter"]}
+                "required": [
+                  "executable"
+                ],
+                "not": {
+                  "required": [
+                    "interpreter"
+                  ]
+                }
               },
               {
-                "not": {"required": ["interpreter", "executable"]}
+                "not": {
+                  "required": [
+                    "interpreter",
+                    "executable"
+                  ]
+                }
               }
             ],
             "properties": {
@@ -228,15 +246,32 @@
             ],
             "oneOf": [
               {
-                  "required": ["interpreter"],
-                  "not": {"required": ["executable"]}
+                "required": [
+                  "interpreter"
+                ],
+                "not": {
+                  "required": [
+                    "executable"
+                  ]
+                }
               },
               {
-                "required": ["executable"],
-                "not": {"required": ["interpreter"]}
+                "required": [
+                  "executable"
+                ],
+                "not": {
+                  "required": [
+                    "interpreter"
+                  ]
+                }
               },
               {
-                "not": {"required": ["interpreter", "executable"]}
+                "not": {
+                  "required": [
+                    "interpreter",
+                    "executable"
+                  ]
+                }
               }
             ],
             "properties": {

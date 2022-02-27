@@ -1,6 +1,6 @@
 import { Subject } from 'await-notify';
-import { LoggingDebugSession, TerminatedEvent, OutputEvent, InitializedEvent, ExitedEvent } from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { LoggingDebugSession, TerminatedEvent, OutputEvent, InitializedEvent, ExitedEvent } from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { DebugLogger } from '../VSCode/LogManager';
 import { DebuggeeSession } from '../Debuggee/Session';
 import { DebuggeeSessionFactory } from '../Debuggee/SessionFactory';
