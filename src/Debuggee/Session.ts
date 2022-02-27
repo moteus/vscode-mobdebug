@@ -1,6 +1,6 @@
 import * as Net from 'net';
 import * as path from 'path';
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { DebuggeeConnection } from "./Connection";
 import { DebuggerSession } from "../Debugger/Session";
 import { EventEmitter } from 'events';
