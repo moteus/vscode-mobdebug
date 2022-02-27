@@ -1,30 +1,11 @@
 local timer = require'lzmq.timer'
 
-g = 20
+local mobdebug = require "mobdebug"
+mobdebug.logging(true)
+mobdebug.start('127.0.0.1', 8818)
 
-local a = 10
-
-function main()
-    local t = {}
-    for i = 1,30000 do
-        timer.sleep(100)
-        local v = math.random()
-        if i < 3 then
-            table.insert(t,v)
-        end
-    end
-
-    local m = t[1]
-
-    for _, v in ipairs(t) do
-        if m < v then
-            m = v
-        end
-    end
-
-    print("Max value: " .. m)
+for i = 1, 50 do
+    print('hello '..tostring(i))
+    io.flush()
+    timer.sleep(100)
 end
-
-main()
-
-print(a)

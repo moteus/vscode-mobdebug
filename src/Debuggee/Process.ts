@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import * as path from 'path';
 import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import { Constants } from "../Constants";
@@ -12,6 +13,7 @@ export type DebuggeeProcessCallback = (code?: number) => void;
 
 export interface IDebuggeeProcess {
     run(callback: DebuggeeProcessCallback): void;
+    runTerminal(): void;
     dispose(terminate?:boolean): void;
 }
 
@@ -20,10 +22,15 @@ export function launchScript(config: IDebuggerSessionConfig, session: IDebuggerS
     return process;
 }
 
-class DebuggeeProcess implements IDebuggeeProcess{
+function escapeShell(cmd) {
+    return '"' + cmd.replace(/(["$`\\])/g, '\\$1') + '"';
+};
+
+class DebuggeeProcess implements IDebuggeeProcess {
     protected session: IDebuggerSessionStdio;
     protected config: IDebuggerSessionConfig;
     protected process?: ChildProcess;
+    protected terminal?: vscode.Terminal;
     protected exitProcessed?: boolean;
 
     constructor(config: IDebuggerSessionConfig, session: IDebuggerSessionStdio) {
@@ -91,6 +98,24 @@ class DebuggeeProcess implements IDebuggeeProcess{
         return spawn(executable, args, options);
     }
 
+    protected getTerminal() : vscode.Terminal{
+        // TODO: allaw to use the same terminal for all commands
+        let terminal = vscode.window.createTerminal({
+            name: `Debug Lua File ($Constants.logChannelPrefix)`,
+            env: {}, 
+        });
+        return terminal;
+    }
+
+    public runTerminal(): void {
+        this.terminal = this.getTerminal();
+        let args = this.createArgs().map(escapeShell);
+        let executable = this.getApplication();
+        let cmd = executable + ' ' + args.join(' ');
+        this.terminal.sendText(cmd, true);
+        this.terminal.show();
+    }
+
     public run(callback: DebuggeeProcessCallback){
         let session = this.session;
         let config = this.config;
@@ -149,6 +174,10 @@ class DebuggeeProcess implements IDebuggeeProcess{
             }
             this.process = undefined;
         }
+
+        if(this.terminal){
+            this.terminal = undefined;
+        }
     }
 }
 
@@ -163,9 +192,9 @@ class LuaScript extends DebuggeeProcess {
 
         if (!config.noDebug) {
             let luaPath = path.join(Constants.extensionPath, 'lua').replace(/\\/g, '\\\\');
-            let luaDirSep           = "package.config:match('^(.-)\\n')";           // `/`
-            let luaTemplateSep      = "package.config:match('^.-\\n(.-)\\n')";      // `;`
-            let luaSubstitutionMark = "package.config:match('^.-\\n.-\\n(.-)\\n')"; // `?`
+            let luaDirSep           = "package.config:match('^(.-)%s')";           // `/`
+            let luaTemplateSep      = "package.config:match('^.-%s(.-)%s')";      // `;`
+            let luaSubstitutionMark = "package.config:match('^.-%s.-%s(.-)%s')"; // `?`
             let setLuaPath = `package.path='${luaPath}'..${luaDirSep}..${luaSubstitutionMark}..'.lua'..${luaTemplateSep}..package.path`;
             let requireDebug = `require'vscode-mobdebug'.start('127.0.0.1',${config.debuggeePort})`;
             args.push('-l', `package`);

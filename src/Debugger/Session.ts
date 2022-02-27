@@ -63,7 +63,13 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
         if(!this.configureAttach(response, <AttachRequestArguments>args)){
             return;
         }
+
         this.watingDebuggeeSession(response);
+
+        if(this.launchInterpreter || this.launchExecutable) {
+            this.debugProcess = launchScript(this, this);
+            this.debugProcess.runTerminal();
+        }
     }
 
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments) {
@@ -97,6 +103,18 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
     }
 
     private configureAttach(response: DebugProtocol.Response, args: AttachRequestArguments):boolean{
+        if (args.executable) {
+            this.launchExecutable = args.executable;
+            this.launchInterpreter = '';
+        } else if(args.interpreter) {
+            this.launchInterpreter = args.interpreter;
+            this.launchExecutable = '';
+        }
+
+        if(this.launchInterpreter || this.launchExecutable) {
+            this.launchArguments = args.arguments || [];
+        }
+
         return this.configureCommon(response, args);
     }
 
@@ -334,6 +352,9 @@ interface LaunchRequestArguments extends RequestArguments {
 }
 
 interface AttachRequestArguments extends RequestArguments {
+    executable?: string;
+    interpreter?: string;
+    arguments?: Array<string>;
 }
 
 const ENCODINGS = new Set(["ascii", "utf8", "utf-8", "utf16le", "ucs2", "ucs-2", "base64", "base64url", "latin1"]);

@@ -107,7 +107,6 @@
               "request": "launch",
               "workingDirectory": "^\"\\${workspaceFolder}\"",
               "sourceBasePath": "^\"\\${workspaceFolder}\"",
-              "listenPublicly": false,
               "listenPort": 8172,
               "stopOnEntry": true,
               "sourceEncoding": "UTF-8",
@@ -152,6 +151,32 @@
                 "description": "Base path of lua source files",
                 "default": "${workspaceRoot}"
               },
+              "stopOnEntry": {
+                "type": "boolean",
+                "markdownDescription": "Automatically stop after entry.",
+                "default": true
+              },
+              "listenPublicly": {
+                "type": "boolean",
+                "description": "Listen incoming connections on all interfaces",
+                "default": false
+              },
+              "listenPort": {
+                "type": "integer",
+                "description": "Local TCP port to communicate between debug adapter and debuggee",
+                "default": 8172
+              },
+              "sourceEncoding": {
+                "type": "string",
+                "description": "Encoding of the debuggee. (Example: 'UTF-8', '949')",
+                "default": "UTF-8",
+                "enum": [
+                  "ASCII",
+                  "LATIN1",
+                  "UCS-2",
+                  "UTF-8"
+                ]
+              },
               "interpreter": {
                 "type": "string",
                 "description": "An interpriter to launch Lua script with auto loaded mobdebug module.",
@@ -160,11 +185,6 @@
               "executable": {
                 "type": "string",
                 "description": "An arbitrary application to launch debuggee process."
-              },
-              "stopOnEntry": {
-                "type": "boolean",
-                "markdownDescription": "Automatically stop after entry.",
-                "default": true
               },
               "arguments": {
                 "type": "array",
@@ -182,27 +202,6 @@
                   ]
                 },
                 "description": "Environment variables for executable"
-              },
-              "listenPublicly": {
-                "type": "boolean",
-                "description": "Set this to false",
-                "default": false
-              },
-              "listenPort": {
-                "type": "integer",
-                "description": "Local TCP port to communicate between debug adapter and debuggee",
-                "default": 56789
-              },
-              "sourceEncoding": {
-                "type": "string",
-                "description": "Encoding of the debuggee. (Example: 'UTF-8', '949')",
-                "default": "UTF-8",
-                "enum": [
-                  "ASCII",
-                  "LATIN1",
-                  "UCS-2",
-                  "UTF-8"
-                ]
               },
               "consoleEncoding": {
                 "type": "string",
@@ -226,6 +225,19 @@
               "listenPublicly",
               "listenPort"
             ],
+            "oneOf": [
+              {
+                  "required": ["interpreter"],
+                  "not": {"required": ["executable"]}
+              },
+              {
+                "required": ["executable"],
+                "not": {"required": ["interpreter"]}
+              },
+              {
+                "not": {"required": ["interpreter", "executable"]}
+              }
+            ],
             "properties": {
               "workingDirectory": {
                 "type": "string",
@@ -244,18 +256,33 @@
               },
               "listenPublicly": {
                 "type": "boolean",
-                "description": "Set this to true if the debuggee will run in different computer.",
+                "description": "Listen incoming connections on all interfaces",
                 "default": false
               },
               "listenPort": {
                 "type": "integer",
                 "description": "Local TCP port to communicate between debug adapter and debuggee.",
-                "default": 56789
+                "default": 8172
               },
               "sourceEncoding": {
                 "type": "string",
                 "description": "Encoding of the debuggee. (Example: 'UTF-8', 'ASCII')",
                 "default": "UTF-8"
+              },
+              "interpreter": {
+                "type": "string",
+                "description": "An interpriter to launch Lua script with auto loaded mobdebug module."
+              },
+              "executable": {
+                "type": "string",
+                "description": "An arbitrary application to launch debuggee process."
+              },
+              "arguments": {
+                "type": "array",
+                "description": "Command line arguments for executable",
+                "default": [
+                  "${relativeFile}"
+                ]
               }
             }
           }

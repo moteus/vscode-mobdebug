@@ -20,13 +20,27 @@
             ]
         },
         {
+            "name": "Lua MobDebug: Listen and Run",
+            "type": "luaMobDebug",
+            "request": "attach",
+            "workingDirectory": "${workspaceFolder}",
+            "sourceBasePath": "${workspaceFolder}",
+            "listenPublicly": false,
+            "listenPort": 8818,
+            "sourceEncoding": "UTF-8",
+            "interpreter": "lua51",
+            "arguments": [
+                "test.lua"
+            ]
+        },
+        {
             "name": "Lua MobDebug: Listen",
             "type": "luaMobDebug",
             "request": "attach",
             "workingDirectory": "${workspaceFolder}",
             "sourceBasePath": "${workspaceFolder}",
             "listenPublicly": false,
-            "listenPort": 56789,
+            "listenPort": 8818,
             "sourceEncoding": "UTF-8"
         }
     ]
