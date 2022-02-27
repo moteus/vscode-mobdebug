@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@types/vscode": "^1.61.0",
+    "shell-quote": "^1.7.1",
     "await-notify": "1.0.1",
     "buffer": "^6.0.3",
     "net": "^1.0.2",
@@ -282,6 +283,15 @@
                 "description": "Command line arguments for executable",
                 "default": [
                   "${relativeFile}"
+                ]
+              },
+              "runMode": {
+                "type": "string",
+                "description": "Run debuggee executable either in a new shell or as task",
+                "default": "task",
+                "enum": [
+                  "shell",
+                  "task"
                 ]
               }
             }

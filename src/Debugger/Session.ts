@@ -7,7 +7,7 @@ import { DebuggeeSessionFactory } from '../Debuggee/SessionFactory';
 import { Constants } from '../Constants';
 import { IDebuggerSessionConfig } from './ISessionConfig';
 import { IDebuggerSessionStdio } from "./ISessionStdio";
-import { launchScript, IDebuggeeProcess } from '../Debuggee/Process';
+import { launchScript, IDebuggeeProcess, DebuggeeTerminalMode } from '../Debuggee/Process';
 import { assert } from 'console';
 
 export class DebuggerSession extends LoggingDebugSession implements IDebuggerSessionConfig, IDebuggerSessionStdio {
@@ -25,12 +25,15 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
     public debuggeeHost:string = '';
     public debuggeePort:number = Constants.defaultPort;
     public stopOnEntry:boolean = true;
-
-    // Launch configuration
-    public noDebug?:boolean;
     public launchExecutable:string = '';
     public launchInterpreter:string = '';
     public launchArguments?:Array<string>;
+
+    // Attach configuration
+    public terminalMode?: DebuggeeTerminalMode;
+
+    // Launch configuration
+    public noDebug?:boolean;
     public launchEnveronment?: { [key: string]: string | null | undefined };
 
     public constructor() {
@@ -113,6 +116,7 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
 
         if(this.launchInterpreter || this.launchExecutable) {
             this.launchArguments = args.arguments || [];
+            this.terminalMode = args.runMode === 'shell' ? DebuggeeTerminalMode.native : DebuggeeTerminalMode.task;
         }
 
         return this.configureCommon(response, args);
@@ -355,6 +359,7 @@ interface AttachRequestArguments extends RequestArguments {
     executable?: string;
     interpreter?: string;
     arguments?: Array<string>;
+    runMode?: string;
 }
 
 const ENCODINGS = new Set(["ascii", "utf8", "utf-8", "utf16le", "ucs2", "ucs-2", "base64", "base64url", "latin1"]);

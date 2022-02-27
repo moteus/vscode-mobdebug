@@ -1,3 +1,5 @@
+import { DebuggeeTerminalMode } from '../Debuggee/Process';
+
 export interface IDebuggerSessionConfig {
     // Common configuration
     sourceEncoding:BufferEncoding;
@@ -6,11 +8,14 @@ export interface IDebuggerSessionConfig {
     workingDirectory:string;
     debuggeeHost:string;
     debuggeePort:number;
-
-    // Launch configuration
-    noDebug?:boolean;
     launchInterpreter?:string;
     launchExecutable?:string;
     launchArguments?:Array<string>;
+
+    // Attach configuration
+    terminalMode?: DebuggeeTerminalMode;
+
+    // Launch configuration
+    noDebug?:boolean;
     launchEnveronment?: { [key: string]: string | null | undefined };
 }

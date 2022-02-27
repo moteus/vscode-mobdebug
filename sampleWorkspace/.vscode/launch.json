@@ -29,6 +29,7 @@
             "listenPort": 8818,
             "sourceEncoding": "UTF-8",
             "interpreter": "lua51",
+            "runMode": "task",
             "arguments": [
                 "test.lua"
             ]

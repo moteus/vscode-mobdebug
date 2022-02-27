@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as qshell from 'shell-quote';
 import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import { Constants } from "../Constants";
 import { IDebuggerSessionConfig } from "../Debugger/ISessionConfig";
@@ -11,6 +12,8 @@ interface ProcessEnv {
 
 export type DebuggeeProcessCallback = (code?: number) => void;
 
+export enum DebuggeeTerminalMode {native, task};
+
 export interface IDebuggeeProcess {
     run(callback: DebuggeeProcessCallback): void;
     runTerminal(): void;
@@ -21,10 +24,6 @@ export function launchScript(config: IDebuggerSessionConfig, session: IDebuggerS
     let process : DebuggeeProcess = config.launchInterpreter ? new LuaScript(config, session) : new DebuggeeProcess(config, session);
     return process;
 }
-
-function escapeShell(cmd) {
-    return '"' + cmd.replace(/(["$`\\])/g, '\\$1') + '"';
-};
 
 class DebuggeeProcess implements IDebuggeeProcess {
     protected session: IDebuggerSessionStdio;
@@ -101,19 +100,49 @@ class DebuggeeProcess implements IDebuggeeProcess {
     protected getTerminal() : vscode.Terminal{
         // TODO: allaw to use the same terminal for all commands
         let terminal = vscode.window.createTerminal({
-            name: `Debug Lua File ($Constants.logChannelPrefix)`,
+            name: `Debug Lua File (${Constants.logChannelPrefix})`,
             env: {}, 
         });
         return terminal;
     }
 
-    public runTerminal(): void {
-        this.terminal = this.getTerminal();
-        let args = this.createArgs().map(escapeShell);
+    protected runTerminalTask(): void {
         let executable = this.getApplication();
-        let cmd = executable + ' ' + args.join(' ');
+        let args = this.createArgs().map((item) => {
+            return {
+                value: item,
+                quoting: vscode.ShellQuoting.Weak,
+            };
+        });
+        var shell = new vscode.ShellExecution(executable, args);
+        let kind: vscode.TaskDefinition = {
+            type: 'mobdebug.launch',
+        };
+        let task = new vscode.Task(
+            kind,
+            vscode.TaskScope.Workspace,
+            Constants.logChannelPrefix,
+            `Debug Lua File (${Constants.logChannelPrefix})`,
+            shell
+        );
+        vscode.tasks.executeTask(task);
+    }
+
+    protected runTerminalNative(): void {
+        this.terminal = this.getTerminal();
+        let args = qshell.quote(this.createArgs());
+        let executable = this.getApplication();
+        let cmd = executable + ' ' + args;
         this.terminal.sendText(cmd, true);
         this.terminal.show();
+    }
+
+    public runTerminal(): void {
+        if (this.config.terminalMode === DebuggeeTerminalMode.native) {
+            this.runTerminalNative();
+        } else if (this.config.terminalMode === DebuggeeTerminalMode.task) {
+            this.runTerminalTask();
+        }
     }
 
     public run(callback: DebuggeeProcessCallback){
