@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { quote } from 'shell-quote';
-import { tasks, window } from 'vscode';
+import { TaskExecution, tasks, window } from 'vscode';
 import { Terminal, ShellQuoting, TaskDefinition, ShellExecution, Task, TaskScope } from 'vscode';
 import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import { Constants } from "../Constants";
@@ -12,12 +12,13 @@ interface ProcessEnv {
 }
 
 export type DebuggeeProcessCallback = (code?: number) => void;
+export type DebuggeeTerminalCallback = () => void;
 
 export enum DebuggeeTerminalMode {native, task};
 
 export interface IDebuggeeProcess {
     run(callback: DebuggeeProcessCallback): void;
-    runTerminal(): void;
+    runTerminal(callback: DebuggeeTerminalCallback): void;
     dispose(terminate?:boolean): void;
 }
 
@@ -31,6 +32,7 @@ class DebuggeeProcess implements IDebuggeeProcess {
     protected config: IDebuggerSessionConfig;
     protected process?: ChildProcess;
     protected terminal?: Terminal;
+    protected taskExecution?: TaskExecution;
     protected exitProcessed?: boolean;
 
     constructor(config: IDebuggerSessionConfig, session: IDebuggerSessionStdio) {
@@ -107,7 +109,7 @@ class DebuggeeProcess implements IDebuggeeProcess {
         return terminal;
     }
 
-    protected runTerminalTask(): void {
+    protected async runTerminalTask(callback) {
         let executable = this.getApplication();
         let args = this.createArgs().map((item) => {
             return {
@@ -115,10 +117,12 @@ class DebuggeeProcess implements IDebuggeeProcess {
                 quoting: ShellQuoting.Weak,
             };
         });
+
         var shell = new ShellExecution(executable, args);
         let kind: TaskDefinition = {
             type: 'mobdebug.launch',
         };
+
         let task = new Task(
             kind,
             TaskScope.Workspace,
@@ -126,7 +130,16 @@ class DebuggeeProcess implements IDebuggeeProcess {
             `Debug Lua File (${Constants.moduleDisplayName})`,
             shell
         );
-        tasks.executeTask(task);
+
+        this.taskExecution = await tasks.executeTask(task);
+        tasks.onDidEndTask(e => {
+            if (this.taskExecution) {
+                if (e.execution === this.taskExecution) {
+                    this.taskExecution = undefined;
+                    callback();
+                }
+            }
+        });
     }
 
     protected runTerminalNative(): void {
@@ -138,11 +151,11 @@ class DebuggeeProcess implements IDebuggeeProcess {
         this.terminal.show();
     }
 
-    public runTerminal(): void {
+    public runTerminal(callback: DebuggeeTerminalCallback): void {
         if (this.config.terminalMode === DebuggeeTerminalMode.native) {
             this.runTerminalNative();
         } else if (this.config.terminalMode === DebuggeeTerminalMode.task) {
-            this.runTerminalTask();
+            this.runTerminalTask(callback);
         }
     }
 
@@ -194,7 +207,7 @@ class DebuggeeProcess implements IDebuggeeProcess {
         });
     }
 
-    public dispose(terminate?:boolean) {
+    public dispose(terminate?: boolean) {
         if (this.process) {
             this.process.removeAllListeners();
             if (terminate) {
@@ -207,6 +220,13 @@ class DebuggeeProcess implements IDebuggeeProcess {
 
         if(this.terminal){
             this.terminal = undefined;
+        }
+
+        if (this.taskExecution) {
+            if (terminate) {
+                this.taskExecution.terminate();
+            }
+            this.taskExecution = undefined;
         }
     }
 }

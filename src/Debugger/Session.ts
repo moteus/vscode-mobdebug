@@ -71,7 +71,19 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
 
         if(this.launchInterpreter || this.launchExecutable) {
             this.debugProcess = launchScript(this, this);
-            this.debugProcess.runTerminal();
+            this.debugProcess.runTerminal(() => {
+                if (this.debuggee) {
+                    this.debuggee.stop();
+                    this.debuggee = undefined;
+                }
+
+                if (this.debuggeeServer) {
+                    this.debuggeeServer.dispose();
+                    this.debuggeeServer = undefined;
+                }
+
+                this.sendEvent(new TerminatedEvent());
+            });
         }
     }
 
@@ -93,6 +105,12 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
                 this.debuggee.stop();
                 this.debuggee = undefined;
             }
+
+            if (this.debuggeeServer) {
+                this.debuggeeServer.dispose();
+                this.debuggeeServer = undefined;
+            }
+
             if(code !== undefined){
                 this.sendEvent(new ExitedEvent(code));
             }
