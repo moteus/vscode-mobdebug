@@ -1,5 +1,6 @@
 import * as Net from 'net';
-import * as vscode from 'vscode';
+import { DebugAdapterServer, DebugAdapterNamedPipeServer, DebugAdapterInlineImplementation } from 'vscode';
+import { DebugSession, ProviderResult, DebugAdapterDescriptor, DebugAdapterDescriptorFactory } from 'vscode';
 import { platform } from 'process';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -10,10 +11,10 @@ import { assert } from 'console';
 
 enum ServerType { inline, namePipe, tcp };
 
-class InlineDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory {
-    createDebugAdapterDescriptor(_session: vscode.DebugSession): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
+class InlineDebugAdapterFactory implements DebugAdapterDescriptorFactory {
+    createDebugAdapterDescriptor(_session: DebugSession): ProviderResult<DebugAdapterDescriptor> {
         let session = new DebuggerSession();
-        return new vscode.DebugAdapterInlineImplementation(session);
+        return new DebugAdapterInlineImplementation(session);
     }
 
     dispose(){
@@ -27,6 +28,10 @@ export class DebuggerServer {
     private server?: Net.Server;
     private type: ServerType = ServerType.tcp;
     private listeningAddress?:string;
+
+    constructor(serverType: keyof typeof ServerType) {
+        this.type = ServerType[serverType];
+    }
 
     public process(){
         this.listen();
@@ -75,15 +80,15 @@ export class DebuggerServer {
         DebugLogger.logAdapterInfo("[DebuggerServer] " + message);
     }
 
-    public createDebugAdapterDescriptor(): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
+    public createDebugAdapterDescriptor(): ProviderResult<DebugAdapterDescriptor> {
         this.debugAdapterLog("Create new DebugAdapter descriptor");
         assert(this.server !== undefined);
         if (this.type === ServerType.tcp) {
             let address = this.server?.address() as Net.AddressInfo;
-            return new vscode.DebugAdapterServer(address.port, address.address);
+            return new DebugAdapterServer(address.port, address.address);
         } else if (this.type === ServerType.namePipe) {
             let address = this.server?.address() as string;
-            return new vscode.DebugAdapterNamedPipeServer(address);
+            return new DebugAdapterNamedPipeServer(address);
         } else if (this.type === ServerType.inline) {
             return new InlineDebugAdapterFactory();
         }

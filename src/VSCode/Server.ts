@@ -1,12 +1,13 @@
-import * as vscode from 'vscode';
+import { DebugSession, DebugAdapterExecutable, ProviderResult, DebugAdapterDescriptor, workspace } from 'vscode';
 import { DebuggerServer } from "../Debugger/Server";
 
-export class DebugAdapterDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
+export class DebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactory {
     private server?: DebuggerServer;
 
-    createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
+    createDebugAdapterDescriptor(session: DebugSession, executable: DebugAdapterExecutable | undefined): ProviderResult<DebugAdapterDescriptor> {
         if (!this.server) {
-            this.server = new DebuggerServer();
+            let settings = workspace.getConfiguration('luaMobDebug.settings');
+            this.server = new DebuggerServer(settings.serverType);
             this.server.process();
         }
         return this.server.createDebugAdapterDescriptor();

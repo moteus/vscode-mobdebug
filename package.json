@@ -333,6 +333,19 @@
           }
         }
       }
-    ]
+    ],
+    "configuration": {
+      "properties": {
+        "luaMobDebug.settings.serverType": {
+          "type": "string",
+          "enum": [
+            "tcp",
+            "namePipe",
+            "inline"
+          ],
+          "default": "tcp"
+        }
+      }
+    }
   }
 }
