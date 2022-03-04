@@ -1,9 +1,9 @@
 {
   "name": "lua-mobdebug",
   "displayName": "Lua MobDebug adapter",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Visual Studio Code MobDebug adapter",
-  "publisher": "Alexey Melnichuk",
+  "publisher": "AlexeyMelnichuk",
   "author": {
     "name": "Alexey Melnichuk",
     "email": "alexeymelnichuck@gmail.com"
