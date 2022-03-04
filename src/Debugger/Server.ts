@@ -50,7 +50,7 @@ export class DebuggerServer {
     }
 
     private listenNamedPipe() {
-        const pipeName = randomBytes(10).toString('utf8');
+        const pipeName = randomBytes(16).toString('hex');
         const pipePath = platform === "win32" ? join('\\\\.\\pipe\\', pipeName) : join(tmpdir(), pipeName);
         this.server = Net.createServer(socket => {
             this.processConnection(socket);
