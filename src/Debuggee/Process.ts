@@ -210,6 +210,8 @@ class DebuggeeProcess implements IDebuggeeProcess {
     public dispose(terminate?: boolean) {
         if (this.process) {
             this.process.removeAllListeners();
+            this.process.stdout?.removeAllListeners();
+            this.process.stderr?.removeAllListeners();
             if (terminate) {
                 this.process.kill();
             } else {
