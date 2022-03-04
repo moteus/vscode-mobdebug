@@ -1,6 +1,5 @@
 import * as Net from 'net';
-import { DebugAdapterServer, DebugAdapterNamedPipeServer, DebugAdapterInlineImplementation } from 'vscode';
-import { DebugSession, ProviderResult, DebugAdapterDescriptor, DebugAdapterDescriptorFactory } from 'vscode';
+import { DebugAdapterServer, DebugAdapterNamedPipeServer, DebugAdapterInlineImplementation, ProviderResult, DebugAdapterDescriptor } from 'vscode';
 import { platform } from 'process';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -10,16 +9,6 @@ import { DebuggerSession } from './Session';
 import { assert } from 'console';
 
 enum ServerType { inline, namePipe, tcp };
-
-class InlineDebugAdapterFactory implements DebugAdapterDescriptorFactory {
-    createDebugAdapterDescriptor(_session: DebugSession): ProviderResult<DebugAdapterDescriptor> {
-        let session = new DebuggerSession();
-        return new DebugAdapterInlineImplementation(session);
-    }
-
-    dispose(){
-    }
-}
 
 /**
  * Interact with VSCode
@@ -90,7 +79,8 @@ export class DebuggerServer {
             let address = this.server?.address() as string;
             return new DebugAdapterNamedPipeServer(address);
         } else if (this.type === ServerType.inline) {
-            return new InlineDebugAdapterFactory();
+            let session = new DebuggerSession();
+            return new DebugAdapterInlineImplementation(session);
         }
         return undefined;
     }
