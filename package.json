@@ -149,14 +149,6 @@
                     "interpreter"
                   ]
                 }
-              },
-              {
-                "not": {
-                  "required": [
-                    "interpreter",
-                    "executable"
-                  ]
-                }
               }
             ],
             "properties": {
@@ -167,8 +159,29 @@
               },
               "sourceBasePath": {
                 "type": "string",
-                "description": "Base path of lua source files",
+                "description": "Base path of Lua source files",
                 "default": "${workspaceRoot}"
+              },
+              "pathMap": {
+                "type" : "array",
+                "description": "Maps remote file paths to the local one",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "localPrefix",
+                    "remotePrefix"
+                  ],
+                  "properties": {
+                    "localPrefix": {
+                      "type": "string",
+                      "description": "Local path prefix relative to the sourceBasePath"
+                    },
+                    "remotePrefix": {
+                      "type": "string",
+                      "description": "Path prefix for file on the debuggee system"
+                    }
+                  }
+                }
               },
               "stopOnEntry": {
                 "type": "boolean",
@@ -266,12 +279,36 @@
                 }
               },
               {
-                "not": {
-                  "required": [
-                    "interpreter",
-                    "executable"
-                  ]
-                }
+                "allOf":[
+                  {
+                    "not": {
+                      "required": [
+                        "interpreter"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "required": [
+                        "executable"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "required": [
+                        "runMode"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "required": [
+                        "arguments"
+                      ]
+                    }
+                  }
+                ]
               }
             ],
             "properties": {
@@ -282,8 +319,29 @@
               },
               "sourceBasePath": {
                 "type": "string",
-                "description": "Base path of lua source files",
+                "description": "Base path of Lua source files",
                 "default": "${workspaceRoot}"
+              },
+              "pathMap": {
+                "type" : "array",
+                "description": "Maps remote file paths to the local one",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "localPrefix",
+                    "remotePrefix"
+                  ],
+                  "properties": {
+                    "localPrefix": {
+                      "type": "string",
+                      "description": "Local path prefix relative to the sourceBasePath"
+                    },
+                    "remotePrefix": {
+                      "type": "string",
+                      "description": "Path prefix for file on the debuggee system"
+                    }
+                  }
+                }
               },
               "stopOnEntry": {
                 "type": "boolean",

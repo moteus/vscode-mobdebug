@@ -834,8 +834,19 @@ dap.fields.responseBody = ProtoField.new("Body", "debug.responseBody", ftypes.ST
 -- Response
 dap.fields.request_seq = ProtoField.new("Request Sequence Number", "debug.request_seq", ftypes.UINT32, nil, base.DEC)
 dap.fields.success = ProtoField.new("Success", "debug.success", ftypes.BOOLEAN)
+
 -- dap.fields.command
 dap.fields.message = ProtoField.new("Message", "debug.message", ftypes.STRING)
+
+dap.fields.pathMapArray  = ProtoField.new("PathMap", "debug.pathMaps",  ftypes.STRING)
+
+dap.fields.pathMap       = ProtoField.new("PathMap", "debug.pathMap",  ftypes.STRING)
+
+-- pathMap.localPrefix
+dap.fields.localPrefix  = ProtoField.new("LocalPrefix", "debug.pathMap.localPrefix",  ftypes.STRING)
+
+-- pathMap.remotePrefix
+dap.fields.remotePrefix = ProtoField.new("RemotePrefix", "debug.pathMap.remotePrefix", ftypes.STRING)
 
 local MIN_PDU_LENGTH = min_header_len 
 
@@ -903,6 +914,14 @@ local COMMAND_PARSERS = {
         end
         if arguments.stopOnEntry ~= nil then
             tree:add(dap.fields.stopOnEntry, arguments.stopOnEntry)
+        end
+        if arguments.pathMap then
+            local subtree = tree:add(dap.fields.pathMapArray, lunajson.encode(arguments.pathMap))
+            for _, map in ipairs(arguments.pathMap) do
+                local subtree = subtree:add(dap.fields.pathMap, lunajson.encode(map))
+                subtree:add(dap.fields.remotePrefix, map[1])
+                subtree:add(dap.fields.localPrefix,  map[2])
+            end
         end
     end
 }

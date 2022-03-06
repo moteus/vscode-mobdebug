@@ -9,6 +9,20 @@ import { IDebuggerSessionConfig } from './ISessionConfig';
 import { IDebuggerSessionStdio } from "./ISessionStdio";
 import { launchScript, IDebuggeeProcess, DebuggeeTerminalMode } from '../Debuggee/Process';
 import { assert } from 'console';
+import {normalize as path_normalize} from 'path';
+
+class PathMap {
+    private localPrefix: string;
+    private remotePrefix: string;
+    constructor(l:string, r:string){
+        this.localPrefix = l;
+        this.remotePrefix = r;
+    }
+
+    toJSON(): Array<string> {
+        return [this.remotePrefix, this.localPrefix];
+    }
+};
 
 export class DebuggerSession extends LoggingDebugSession implements IDebuggerSessionConfig, IDebuggerSessionStdio {
     private debuggeeServer?: DebuggeeSessionFactory;
@@ -28,6 +42,7 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
     public launchExecutable:string = '';
     public launchInterpreter:string = '';
     public launchArguments?:Array<string>;
+    public pathMap?: Array<PathMap>;
 
     // Attach configuration
     public terminalMode?: DebuggeeTerminalMode;
@@ -168,6 +183,16 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
         } else {
             this.stopOnEntry = args.stopOnEntry;
         }
+
+        if (args.pathMap) {
+            this.pathMap = new Array();
+            for (let i in args.pathMap) {
+                let localPath  = path_normalize(args.pathMap[i]['localPrefix']);
+                let remotePath = args.pathMap[i]['remotePrefix'];
+                this.pathMap.push(new PathMap(localPath, remotePath));
+            }
+        }
+
         // TODO: validate common configuration
         return true;
     }
@@ -363,6 +388,7 @@ interface RequestArguments {
     sourceEncoding?: string;
     consoleEncoding?: string;
     stopOnEntry?: boolean;
+    pathMap?:Array<Object>;
 }
 
 interface LaunchRequestArguments extends RequestArguments {
