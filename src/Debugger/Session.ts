@@ -9,7 +9,7 @@ import { IDebuggerSessionConfig } from './ISessionConfig';
 import { IDebuggerSessionStdio } from "./ISessionStdio";
 import { launchScript, IDebuggeeProcess, DebuggeeTerminalMode } from '../Debuggee/Process';
 import { assert } from 'console';
-import {normalize as path_normalize} from 'path';
+import { normalize as path_normalize, join as path_join, isAbsolute as path_is_absolute } from 'path';
 
 class PathMap {
     private localPrefix: string;
@@ -187,7 +187,11 @@ export class DebuggerSession extends LoggingDebugSession implements IDebuggerSes
         if (args.pathMap) {
             this.pathMap = new Array();
             for (let i in args.pathMap) {
-                let localPath  = path_normalize(args.pathMap[i]['localPrefix']);
+                let localPath = args.pathMap[i]['localPrefix'];
+                if (!path_is_absolute(localPath)) {
+                    localPath = path_join(this.sourceBasePath, localPath);
+                }
+                localPath = path_normalize(localPath);
                 let remotePath = args.pathMap[i]['remotePrefix'];
                 this.pathMap.push(new PathMap(localPath, remotePath));
             }
