@@ -1,7 +1,7 @@
 {
   "name": "lua-mobdebug",
   "displayName": "Lua MobDebug adapter",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Visual Studio Code MobDebug adapter",
   "publisher": "AlexeyMelnichuk",
   "author": {
@@ -84,6 +84,33 @@
         "label": "Lua MobDebug",
         "program": "./out/DebugAdapter.js",
         "runtime": "node",
+        "initialConfigurations": [
+          {
+            "name": "Lua MobDebug: Listen",
+            "type": "luaMobDebug",
+            "request": "attach",
+            "workingDirectory": "${workspaceFolder}",
+            "sourceBasePath": "${workspaceFolder}",
+            "listenPublicly": false,
+            "listenPort": 8172,
+            "stopOnEntry": true,
+            "sourceEncoding": "UTF-8"
+          },
+          {
+            "name": "Lua MobDebug: Current File",
+            "type": "luaMobDebug",
+            "request": "launch",
+            "workingDirectory": "${workspaceFolder}",
+            "sourceBasePath": "${workspaceFolder}",
+            "listenPort": 8172,
+            "stopOnEntry": true,
+            "sourceEncoding": "UTF-8",
+            "interpreter": "lua",
+            "arguments": [
+              "${relativeFile}"
+            ]
+          }
+       ],
         "configurationSnippets": [
           {
             "label": "Lua MobDebug: Listen",
@@ -163,7 +190,7 @@
                 "default": "${workspaceRoot}"
               },
               "pathMap": {
-                "type" : "array",
+                "type": "array",
                 "description": "Maps remote file paths to the local one",
                 "items": {
                   "type": "object",
@@ -279,7 +306,7 @@
                 }
               },
               {
-                "allOf":[
+                "allOf": [
                   {
                     "not": {
                       "required": [
@@ -323,7 +350,7 @@
                 "default": "${workspaceRoot}"
               },
               "pathMap": {
-                "type" : "array",
+                "type": "array",
                 "description": "Maps remote file paths to the local one",
                 "items": {
                   "type": "object",
